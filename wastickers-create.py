@@ -2,9 +2,21 @@ import os
 import subprocess
 import shutil
 import time
+import mimetypes
+import sys
+
+mimetypes.init()
+
+vid_img_ext = []
+for ext in mimetypes.types_map:
+    if mimetypes.types_map[ext].split('/')[0] == 'video' or mimetypes.types_map[ext].split('/')[0] == 'video':
+        vid_img_ext.append(ext)
+
+vid_img_ext = tuple(vid_img_ext)
 
 print('HINT: Make sure you have installed ffmpeg, magick and zip')
-print('If you are using Windows to run this, these can be easily installed by choco')
+print('If you are using Windows to run this, these can be easily installed by chocolately')
+print()
 
 os.makedirs('input', exist_ok=True)
 
@@ -45,7 +57,9 @@ else:
     res = 96
     quality = 100
     for quality in range(100, 0, -10):
-        subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        with open(os.devnull, 'wb') as devnull:
+            # subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=devnull, stderr=subprocess.STDOUT)
         size = os.path.getsize(new)
         if size >= size_limit:
             print(f'File {new}: Size too large ({size}), redoing with {quality=}')
@@ -58,7 +72,7 @@ for i in os.listdir('input'):
     orig = os.path.join('input', i)
     new = os.path.join('temp', str(fname) + '.webp')
 
-    if i.endswith('webm') or i.endswith('png') or i.endswith('webp'):
+    if os.path.splitext(i)[-1] in vid_img_ext:
         cmd_out = subprocess.Popen(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_frames', '-show_entries', 'stream=nb_read_frames', '-print_format', 'default=nokey=1:noprint_wrappers=1', orig], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = cmd_out.communicate()
         stdout_str = stdout.decode(encoding='utf-8').replace('\n', '')
@@ -67,23 +81,21 @@ for i in os.listdir('input'):
         else:
             frames = int(stdout_str)
 
-        size = os.path.getsize(orig)
-        if (frames == 1 and size < 100000) or (frames > 1 and size < 500000):
+        if len(sys.argv) >= 2 and sys.argv[1] == 'direct':
             shutil.copy(orig, new)
             continue
     
-    if i.endswith('webm') or i.endswith('png') or i.endswith('webp'):
         res = 512
         quality = 100
         for quality in range(100, 0, -10):
             if frames == 1:
-                # with open(os.devnull, 'wb') as devnull:
-                subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                # subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=devnull, stderr=subprocess.STDOUT)
+                with open(os.devnull, 'wb') as devnull:
+                    # subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=devnull, stderr=subprocess.STDOUT)
             else:
-                # with open(os.devnull, 'wb') as devnull:
-                subprocess.check_call(['ffmpeg', '-y', '-i', orig, '-vcodec', 'webp', '-pix_fmt', 'yuva420p', '-quality', quality, '-lossless', '0', '-vf', '"' + f'scale={res}:-1:flags=neighbor:sws_dither=none,scale={res}:{res}:force_original_aspect_ratio=decrease,pad={res}:{res}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1' + '"', '-loop', '0', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                # subprocess.check_call(['ffmpeg', '-y', '-i', orig, '-vcodec', 'webp', '-pix_fmt', 'yuva420p', '-quality', quality, '-lossless', '0', '-vf', '"' + f'scale={res}:-1:flags=neighbor:sws_dither=none,scale={res}:{res}:force_original_aspect_ratio=decrease,pad={res}:{res}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1' + '"', '-loop', '0', new], stdout=devnull, stderr=subprocess.STDOUT)
+                with open(os.devnull, 'wb') as devnull:
+                    # subprocess.check_call(['ffmpeg', '-y', '-i', orig, '-vcodec', 'webp', '-pix_fmt', 'yuva420p', '-quality', quality, '-lossless', '0', '-vf', '"' + f'scale={res}:-1:flags=neighbor:sws_dither=none,scale={res}:{res}:force_original_aspect_ratio=decrease,pad={res}:{res}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1' + '"', '-loop', '0', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    subprocess.check_call(['ffmpeg', '-y', '-i', orig, '-vcodec', 'webp', '-pix_fmt', 'yuva420p', '-quality', quality, '-lossless', '0', '-vf', '"' + f'scale={res}:-1:flags=neighbor:sws_dither=none,scale={res}:{res}:force_original_aspect_ratio=decrease,pad={res}:{res}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1' + '"', '-loop', '0', new], stdout=devnull, stderr=subprocess.STDOUT)
             
             size = os.path.getsize(new)
             if (frames == 1 and size >= 100000) or (frames > 1 and size >= 500000):
