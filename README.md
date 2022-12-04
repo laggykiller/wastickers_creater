@@ -1,5 +1,5 @@
 # wasticker_creater
-Create .wasticker file on computer for importing into WhatsApp
+Create .wasticker file on computer for bulk creating stickers and importing into WhatsApp
 
 # How to use this script
 1. Install `python3`
