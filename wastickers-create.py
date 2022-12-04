@@ -14,18 +14,17 @@ for ext in mimetypes.types_map:
 
 vid_img_ext = tuple(vid_img_ext)
 
-print('HINT: Make sure you have installed ffmpeg, magick and zip')
-print('If you are using Windows to run this, these can be easily installed by chocolately')
-print()
-
 os.makedirs('input', exist_ok=True)
 
 if os.listdir('input') == []:
     print('Place stickers into input folder')
+    input('Press Enter to close...')
     exit()
 
 if len(os.listdir('input')) > 30:
     print('Too many files. Maximum number is 30 files excluding cover')
+    input('Press Enter to close...')
+    exit()
 
 shutil.rmtree('temp', ignore_errors=True)
 os.mkdir('temp')
@@ -58,7 +57,6 @@ else:
     quality = 100
     for quality in range(100, 0, -10):
         with open(os.devnull, 'wb') as devnull:
-            # subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=devnull, stderr=subprocess.STDOUT)
         size = os.path.getsize(new)
         if size >= size_limit:
@@ -81,28 +79,32 @@ for i in os.listdir('input'):
         else:
             frames = int(stdout_str)
 
+        print(f'Processing {orig}')
+
         if len(sys.argv) >= 2 and sys.argv[1] == 'direct':
             shutil.copy(orig, new)
             continue
-    
+
         res = 512
         quality = 100
         for quality in range(100, 0, -10):
             if frames == 1:
                 with open(os.devnull, 'wb') as devnull:
-                    # subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=devnull, stderr=subprocess.STDOUT)
             else:
                 with open(os.devnull, 'wb') as devnull:
-                    # subprocess.check_call(['ffmpeg', '-y', '-i', orig, '-vcodec', 'webp', '-pix_fmt', 'yuva420p', '-quality', quality, '-lossless', '0', '-vf', '"' + f'scale={res}:-1:flags=neighbor:sws_dither=none,scale={res}:{res}:force_original_aspect_ratio=decrease,pad={res}:{res}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1' + '"', '-loop', '0', new], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    subprocess.check_call(['ffmpeg', '-y', '-i', orig, '-vcodec', 'webp', '-pix_fmt', 'yuva420p', '-quality', quality, '-lossless', '0', '-vf', '"' + f'scale={res}:-1:flags=neighbor:sws_dither=none,scale={res}:{res}:force_original_aspect_ratio=decrease,pad={res}:{res}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1' + '"', '-loop', '0', new], stdout=devnull, stderr=subprocess.STDOUT)
-            
+                    subprocess.check_call(['ffmpeg', '-y', '-i', orig, '-vcodec', 'webp', '-pix_fmt', 'yuva420p', '-quality', quality, '-lossless', '0', '-vf', '"' + f'scale={res}:-1:flags=neighbor:sws_dither=none,scale={res}:{res}:force_original_aspect_ratio=decrease,pad={res}:{res}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1' + '"', '-loop', '0', new], stdout=devnull, stderr=subprocess.STDOUT)            
             size = os.path.getsize(new)
             if (frames == 1 and size >= 100000) or (frames > 1 and size >= 500000):
                 print(f'File {new}: Size too large ({size}), redoing with {quality=}')
             else:
                 break
 
+print('Zipping...')
 os.system(f'zip -jr {title}.wastickers ./temp')
 
 shutil.rmtree('./temp')
+
+print()
+print('Done')
+input('Press Enter to close...')
