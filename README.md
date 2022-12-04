@@ -1,5 +1,5 @@
-# wasticker_creater
-Create .wasticker file on computer for bulk creating stickers and importing into WhatsApp
+# wastickers_creater
+Create .wastickers file on computer for bulk creating stickers and importing into WhatsApp
 
 # Downloading
 Precompiled version is available for Windows. Simply download it, unzip and run `wastickers-create.exe`.
@@ -27,7 +27,7 @@ For other OS, or if you do not trust the precompiled version, please download th
 3. (Optional) Add `cover.png` (It should be 96x96 and <50KB). If not added, the script will generate one from the first sticker
 4. Running
     - `wastickers-create.py` (Will modify files to comply with WhatsApp's limitations)
-    - `wastickers-create.py direct` (Pack into .wasticker file directly)
+    - `wastickers-create.py direct` (Pack into .wastickers file directly)
     - If you are using precompiled version on windows, use `wastickers-create.exe`
 
 # How to compile?
@@ -35,14 +35,14 @@ Just run `compile-windows.py` and get it from `dist`
 
 Note that the compile script will download `ffmpeg`, `imagemagick`, `bzip2` and `zip` binaries automatically, as well as pip installing `requests`, `pyunpack`, `patool` and `pyinstaller` if not found
 
-# How to import .wasticker file into WhatsApp
+# How to import .wastickers file into WhatsApp
 1. Download Sticker maker on your phone [iOS version](https://apps.apple.com/us/app/sticker-maker-studio/id1443326857) | [Android version](https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp)
-2. Transfer the .wasticker file into your phone
+2. Transfer the .wastickers file into your phone
 3. Share the file to Sticker Maker app
 4. Inside Sticker Maker app, you can then import the stickers into WhatsApp
 
 # How does this work?
-`.wasticker` files are actually zip files. They contain `author.txt` (Author of sticker pack), `title.txt` (Title of sticker pack), stickers file in png/webp format and cover photo in png.
+`.wastickers` files are actually zip files. They contain `author.txt` (Author of sticker pack), `title.txt` (Title of sticker pack), stickers file in png/webp format and cover photo in png.
 
 Note that the zip file was created with 'junk-paths' (`zip -j`)
 
