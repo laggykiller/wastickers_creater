@@ -22,8 +22,8 @@ Create .wasticker file on computer for importing into WhatsApp
 6. Run with `wastickers-create.py` (Will modify files to comply with WhatsApp's limitations) or `wastickers-create.py direct` (Pack into .wasticker file directly)
 
 # How to import .wasticker file into WhatsApp
-1. Download Sticker maker on your phone [iOS version](https://apps.apple.com/us/app/sticker-maker-studio/id1443326857) [Android version](https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp)
-2. Transfer the. wasticker into your phone
+1. Download Sticker maker on your phone [iOS version](https://apps.apple.com/us/app/sticker-maker-studio/id1443326857) | [Android version](https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp)
+2. Transfer the .wasticker file into your phone
 3. Share the file to Sticker Maker app
 4. Inside Sticker Maker app, you can then import the stickers into WhatsApp
 
