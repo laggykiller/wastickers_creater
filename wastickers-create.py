@@ -6,6 +6,10 @@ import sys
 from wand.image import Image
 import tempfile
 import ffmpeg
+import sys
+
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    os.environ['MAGICK_HOME'] = './'
 
 mimetypes.init()
 
@@ -97,7 +101,11 @@ for i in os.listdir('input'):
         res = 512
         quality = 100
         for quality in range(90, 0, -10):
-            if frames > 1:
+            if frames > 1 and os.path.splitext(i)[-1].lower() == '.webp':
+                # ffmpeg do not support webp decoding (yet)
+                # Converting animated .webp to images or .webp directly can result in broken frames
+                # Converting to .mp4 first is safe way of handling .webp
+                
                 with tempfile.TemporaryDirectory() as tempdir:
                     tmp_f = os.path.join(tempdir, 'temp.mp4')
 
