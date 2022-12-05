@@ -1,15 +1,17 @@
+import sys
 import os
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    magick_home = os.path.abspath('./magick')
+    os.environ["PATH"] += os.pathsep + magick_home + os.sep
+    os.environ['MAGICK_HOME'] = magick_home
+    os.environ["MAGICK_CODER_MODULE_PATH"] = magick_home + os.sep + "coders"
+from wand.image import Image
 import shutil
 import time
 import mimetypes
 import sys
-from wand.image import Image
 import tempfile
 import ffmpeg
-import sys
-
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    os.environ['MAGICK_HOME'] = './'
 
 mimetypes.init()
 
@@ -105,7 +107,7 @@ for i in os.listdir('input'):
                 # ffmpeg do not support webp decoding (yet)
                 # Converting animated .webp to images or .webp directly can result in broken frames
                 # Converting to .mp4 first is safe way of handling .webp
-                
+
                 with tempfile.TemporaryDirectory() as tempdir:
                     tmp_f = os.path.join(tempdir, 'temp.mp4')
 
