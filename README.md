@@ -17,7 +17,6 @@ For other OS, or if you do not trust the precompiled version, please download th
         - For static sticker, the size should be <100KB and in PNG format
         - For dynamic sticker, the size should be <500KB and in WEBP format
     - You may run `wastickers-create.py direct` if you want to pack files into .wasticker file directly
-    - Note that ffmpeg does not support decoding WEBP format video, so if you put webp file into input folder, they will be converted to static stickers (Unless you run with `wastickers-create.py direct`)
     - A good use of this repo is for converting stickers from Signal / Telegram to WhatsApp. You may take a look at these repo for downloading stickers from Signal / Telegram:
         - https://github.com/teynav/signalApngSticker (My fork: https://github.com/laggykiller/wasticker_creater)
         - https://github.com/signalstickers/Adhesive

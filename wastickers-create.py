@@ -1,16 +1,20 @@
 import os
-import subprocess
 import shutil
 import time
 import mimetypes
 import sys
+from wand.image import Image
+import tempfile
+import ffmpeg
 
 mimetypes.init()
 
 vid_img_ext = []
 for ext in mimetypes.types_map:
-    if mimetypes.types_map[ext].split('/')[0] == 'video' or mimetypes.types_map[ext].split('/')[0] == 'video':
+    if mimetypes.types_map[ext].split('/')[0] == 'image' or mimetypes.types_map[ext].split('/')[0] == 'video':
         vid_img_ext.append(ext)
+vid_img_ext.append('.webp')
+vid_img_ext.append('.webm')
 
 vid_img_ext = tuple(vid_img_ext)
 
@@ -56,8 +60,14 @@ else:
     res = 96
     quality = 100
     for quality in range(100, 0, -10):
-        with open(os.devnull, 'wb') as devnull:
-            subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=devnull, stderr=subprocess.STDOUT)
+        with Image(filename=orig + '[0]') as img:
+            img.resize(width=res, height=res)
+            img.background_color = 'none'
+            img.gravity = 'center'
+            img.extent(width=res, height=res)
+            img.compression_quality = quality
+            img.save(filename=new)
+
         size = os.path.getsize(new)
         if size >= size_limit:
             print(f'File {new}: Size too large ({size}), redoing with {quality=}')
@@ -67,17 +77,16 @@ else:
 fname = int(time.time())
 for i in os.listdir('input'):
     fname += 1
-    orig = os.path.join('input', i)
-    new = os.path.join('temp', str(fname) + '.webp')
 
-    if os.path.splitext(i)[-1] in vid_img_ext:
-        cmd_out = subprocess.Popen(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-count_frames', '-show_entries', 'stream=nb_read_frames', '-print_format', 'default=nokey=1:noprint_wrappers=1', orig], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        stdout, stderr = cmd_out.communicate()
-        stdout_str = stdout.decode(encoding='utf-8').replace('\n', '')
-        if stdout_str.isnumeric() == False:
-            frames = 1
+    if os.path.splitext(i)[-1].lower() in vid_img_ext:
+        with Image(filename=orig) as img:
+            frames = img.iterator_length()
+        
+        orig = os.path.join('input', i)
+        if frames == 1:
+            new = os.path.join('temp', str(fname) + '.png')
         else:
-            frames = int(stdout_str)
+            new = os.path.join('temp', str(fname) + '.webp')
 
         print(f'Processing {orig}')
 
@@ -87,13 +96,33 @@ for i in os.listdir('input'):
 
         res = 512
         quality = 100
-        for quality in range(100, 0, -10):
-            if frames == 1:
-                with open(os.devnull, 'wb') as devnull:
-                    subprocess.check_call(['magick', f'{orig}[0]', '-resize', f'{res}x{res}', '-background', 'none', '-gravity', 'center', '-extent', f'{res}x{res}', new], stdout=devnull, stderr=subprocess.STDOUT)
+        for quality in range(90, 0, -10):
+            if frames > 1:
+                with tempfile.TemporaryDirectory() as tempdir:
+                    tmp_f = os.path.join(tempdir, 'temp.mp4')
+
+                    with Image(filename=orig) as img:
+                        img.save(filename=tmp_f)
+                    
+                    (
+                        ffmpeg
+                        .input(tmp_f)
+                        .filter('scale', res, -1, flags='neighbor', sws_dither='none')
+                        .filter('scale', res, res, force_original_aspect_ratio='decrease')
+                        .filter('pad', res, res, '(ow-iw)/2', '(ow-ih)/2', color='black@0')
+                        .filter('setsar', 1)
+                        .output(new, vcodec='webp', pix_fmt='yuva420p', quality=quality, lossless=0, loop=0)
+                        .run(overwrite_output=True)
+                    )
             else:
-                with open(os.devnull, 'wb') as devnull:
-                    subprocess.check_call(['ffmpeg', '-y', '-i', orig, '-vcodec', 'webp', '-pix_fmt', 'yuva420p', '-quality', quality, '-lossless', '0', '-vf', '"' + f'scale={res}:-1:flags=neighbor:sws_dither=none,scale={res}:{res}:force_original_aspect_ratio=decrease,pad={res}:{res}:(ow-iw)/2:(oh-ih)/2:color=black@0,setsar=1' + '"', '-loop', '0', new], stdout=devnull, stderr=subprocess.STDOUT)            
+                with Image(filename=orig) as img:
+                    img.resize(width=res, height=res)
+                    img.background_color = 'none'
+                    img.gravity = 'center'
+                    img.extent(width=res, height=res)
+                    img.compression_quality = quality
+                    img.save(filename=new)
+
             size = os.path.getsize(new)
             if (frames == 1 and size >= 100000) or (frames > 1 and size >= 500000):
                 print(f'File {new}: Size too large ({size}), redoing with {quality=}')
