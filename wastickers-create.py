@@ -118,7 +118,6 @@ for i in os.listdir('input'):
                         ffmpeg
                         .input(tmp_f)
                         .filter('scale', res, -1, flags='neighbor', sws_dither='none')
-                        .filter('scale', res, res, force_original_aspect_ratio='decrease')
                         .filter('pad', res, res, '(ow-iw)/2', '(ow-ih)/2', color='black@0')
                         .filter('setsar', 1)
                         .output(new, vcodec='webp', pix_fmt='yuva420p', quality=quality, lossless=0, loop=0)
