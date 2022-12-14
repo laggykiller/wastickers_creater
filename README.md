@@ -1,3 +1,5 @@
+# Not maintained in favour for https://github.com/laggykiller/sticker-convert
+
 # wastickers_creater
 Create .wastickers file on computer for bulk creating stickers and importing into WhatsApp
 
